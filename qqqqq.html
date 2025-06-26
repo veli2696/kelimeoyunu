@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kelime Kartı Oyunu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #e0f7fa, #fff3e0);
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .dark-mode {
+      background: linear-gradient(135deg, #121212, #1e1e1e);
+      color: #f1f1f1;
+    }
+    .menu button,
+    #butonlar button,
+    .kategori-input button,
+    .kelime-ekle-container button,
+    .kategori-listesi button,
+    .kategori-secim button,
+    .geri-btn {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #42a5f5, #478ed1);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin: 5px;
+    }
+    .menu button:hover,
+    #butonlar button:hover,
+    .kategori-input button:hover,
+    .kelime-ekle-container button:hover,
+    .kategori-listesi button:hover,
+    .kategori-secim button:hover,
+    .geri-btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #1e88e5, #1976d2);
+    }
+    .kategori-listesi div {
+      background: white;
+      padding: 10px;
+      margin: 5px auto;
+      border-radius: 10px;
+      max-width: 300px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sil-btn {
+      padding: 6px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 20px;
+      background: #ef5350;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .sil-btn:hover {
+      background: #d32f2f;
+    }
+    .kategori-secim {
+      margin-top: 20px;
+    }
+    .kelime-formu input {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+    .kart {
+      background: white;
+      padding: 40px;
+      margin: 20px auto;
+      border-radius: 20px;
+      max-width: 400px;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.2);
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.6s ease, background 0.3s, opacity 0.6s ease;
+      opacity: 1;
+    }
+    .fade-out {
+      opacity: 0;
+    }
+    .istatistik {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+      display: none;
+    }
+    body.dark-mode .kart {
+      background: #2c2c2c;
+      color: #f1f1f1;
+    }
+    .oyun-modu {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      position: relative;
+    }
+    .geri-btn-container {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+    }
+      .bil-btn, .bilmiyorum-btn {
+      padding: 14px 28px;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 30px;
+      margin: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s ease, background-color 0.3s;
+    }
+
+    .bil-btn {
+      background: linear-gradient(135deg, #66bb6a, #43a047);
+      color: white;
+    }
+    .bil-btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+    }
+
+    .bilmiyorum-btn {
+      background: linear-gradient(135deg, #ef5350, #e53935);
+      color: white;
+    }
+    .bilmiyorum-btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #d32f2f, #b71c1c);
+    }
+
+</style>
+</head>
+<body>
+  <div class="menu" id="anaMenu">
+    <button onclick="kategoriMenu()">📂 Kategoriler</button>
+    <button onclick="toggleTheme()">🌙 Gece Modu</button>
+  </div>
+
+  <div id="kategoriMenu" style="display: none;">
+    <div class="kategori-input">
+      <input type="text" id="yeniKategori" placeholder="Yeni kategori adı girin">
+      <button onclick="kategoriEkle()">Kategori Oluştur</button>
+    </div>
+    <div class="kategori-listesi" id="kategoriListesi"></div>
+  </div>
+
+  <div class="kategori-secim" id="kategoriSecim"></div>
+  <div id="kartAlani" class="oyun-modu">
+    <div class="geri-btn-container">
+      <button class="geri-btn" onclick="geriDon()">🔙 Geri</button>
+    </div>
+  </div>
+  <div class="istatistik" id="istatistikAlani"></div>
+
+  <script>
+    let kategoriler = JSON.parse(localStorage.getItem("kategoriler"));
+    if (!Array.isArray(kategoriler)) kategoriler = [];
+
+    const kategoriMenu = () => {
+      const menu = document.getElementById("kategoriMenu");
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
+      kategoriListele();
+    };
+
+    const kategoriEkle = () => {
+      const input = document.getElementById("yeniKategori");
+      const kategori = input.value.trim();
+      if (!kategori || kategoriler.includes(kategori)) return;
+      kategoriler.push(kategori);
+      localStorage.setItem("kategoriler", JSON.stringify(kategoriler));
+      input.value = "";
+      kategoriListele();
+    };
+
+    const kategoriSil = (kategori) => {
+      kategoriler = kategoriler.filter(kat => kat !== kategori);
+      localStorage.removeItem("kelimeler_" + kategori);
+      localStorage.setItem("kategoriler", JSON.stringify(kategoriler));
+      kategoriListele();
+    };
+
+    const kategoriSec = (kategori) => {
+      const secimDiv = document.getElementById("kategoriSecim");
+      secimDiv.innerHTML = `
+        <h2>📚 ${kategori}</h2>
+        <button onclick="baslat('${kategori}')">▶ Başlat</button>
+        <button onclick="kelimeEkle('${kategori}')">➕ Kelime Ekle</button>
+        <button onclick="tumKelimeleriGoster('${kategori}')">📄 Tüm Kelimeler</button>
+        <div id="kelimeFormu"></div>
+        <div id="kelimeListesi"></div>
+      `;
+    };
+
+    const kategoriListele = () => {
+      const liste = document.getElementById("kategoriListesi");
+      liste.innerHTML = "";
+      kategoriler.forEach(kat => {
+        const div = document.createElement("div");
+        const span = document.createElement("span");
+        span.textContent = kat;
+        span.style.cursor = "pointer";
+        span.onclick = () => kategoriSec(kat);
+
+        const silBtn = document.createElement("button");
+        silBtn.textContent = "Sil";
+        silBtn.className = "sil-btn";
+        silBtn.onclick = () => kategoriSil(kat);
+
+        div.appendChild(span);
+        div.appendChild(silBtn);
+        liste.appendChild(div);
+      });
+    };
+
+    const kelimeEkle = (kategori) => {
+      document.getElementById("kelimeFormu").innerHTML = `
+        <div class="kelime-formu">
+          <input type="text" id="kelimeInput" placeholder="Kelime">
+          <input type="text" id="anlamInput" placeholder="Anlamı">
+          <button onclick="kaydetKelime('${kategori}')">Kaydet</button>
+        </div>
+      `;
+    };
+
+    const kaydetKelime = (kategori) => {
+      const kelime = document.getElementById("kelimeInput").value.trim();
+      const anlam = document.getElementById("anlamInput").value.trim();
+      if (!kelime || !anlam) return;
+      let veri = JSON.parse(localStorage.getItem("kelimeler_" + kategori)) || [];
+      window.veri = veri;
+      veri.push({ kelime, anlam, zorluk: 0 });
+      localStorage.setItem("kelimeler_" + kategori, JSON.stringify(veri));
+      document.getElementById("kelimeInput").value = "";
+      document.getElementById("anlamInput").value = "";
+      alert("Kelime kaydedildi!");
+    };
+
+    const tumKelimeleriGoster = (kategori) => {
+      const veri = JSON.parse(localStorage.getItem("kelimeler_" + kategori)) || [];
+      const liste = document.getElementById("kelimeListesi");
+      if (veri.length === 0) {
+        liste.innerHTML = "<p>Henüz kelime eklenmedi.</p>";
+        return;
+      }
+      liste.innerHTML = "<h3>📄 Tüm Kelimeler:</h3>" + veri.map((k, index) => `
+        <div style="margin: 5px; padding: 10px; background: #fff; border-radius: 10px; max-width: 400px; margin-inline: auto; display: flex; justify-content: space-between; align-items: center;">
+          <span><strong>${k.kelime}</strong>: ${k.anlam}</span>
+          <button class="sil-btn" onclick="kelimeSil('${kategori}', ${index})">Sil</button>
+        </div>
+      `).join("");
+    };
+
+    const kelimeSil = (kategori, index) => {
+  let veri = JSON.parse(localStorage.getItem("kelimeler_" + kategori)) || [];
+  veri.splice(index, 1);
+  localStorage.setItem("kelimeler_" + kategori, JSON.stringify(veri));
+
+  if (window.aktifKategori === kategori && window.veri) {
+    window.veri = veri;
+  }
+      tumKelimeleriGoster(kategori);
+    };
+
+    const baslat = (kategori) => {
+  window.aktifKategori = kategori;
+  window.veri = null;
+      document.getElementById("anaMenu").style.display = "none";
+      document.getElementById("kategoriMenu").style.display = "none";
+      document.getElementById("kategoriSecim").style.display = "none";
+      document.getElementById("kartAlani").style.display = "flex";
+
+      let veri = JSON.parse(localStorage.getItem("kelimeler_" + kategori)) || [];
+      veri = veri.filter(k => k && k.kelime && k.anlam);
+      window.veri = veri;
+      if (veri.length === 0) {
+        alert("Bu kategoride hiç kelime yok.");
+        return;
+      }
+      veri = veri.sort(() => Math.random() - 0.5);
+      let index = 0;
+      let gosterAnlam = false;
+      const kartAlani = document.getElementById("kartAlani");
+      const istatistikAlani = document.getElementById("istatistikAlani");
+
+      const guncelleIstatistik = () => {
+        const sirali = [...veri].sort((a, b) => b.zorluk - a.zorluk);
+        const zorluklar = sirali.slice(0, 3).map(k => `${k.kelime} (${k.zorluk})`).join(", ");
+        istatistikAlani.textContent = `Zor Kelimeler: ${zorluklar}`;
+      };
+
+      const kartGoster = () => {
+        if (index >= veri.length) index = 0;
+        const item = veri[index];
+        const icerik = gosterAnlam ? item.anlam : item.kelime;
+        const kart = document.createElement("div");
+        kart.className = "kart fade-out";
+        kart.onclick = () => {
+          gosterAnlam = !gosterAnlam;
+          kartGoster();
+        };
+        kart.textContent = icerik;
+
+        // kart alanını sıfırla ama geri butonunu koru
+        const geriBtn = document.querySelector('.geri-btn-container');
+        kartAlani.innerHTML = "";
+        if (geriBtn) kartAlani.appendChild(geriBtn);
+        kartAlani.appendChild(kart);
+
+        if (gosterAnlam) {
+          const butonlarDiv = document.createElement("div");
+
+          const bilBtn = document.createElement("button");
+          bilBtn.className = "bil-btn";
+          bilBtn.innerHTML = "✅ <strong>Biliyorum</strong>";
+          bilBtn.onclick = () => {
+            veri[index].zorluk = Math.max(0, veri[index].zorluk - 1);
+            localStorage.setItem("kelimeler_" + kategori, JSON.stringify(veri));
+            gosterAnlam = false;
+            index++;
+            guncelleIstatistik();
+      kartGoster();
+
+      // Geri butonunu tekrar ekle
+      const geriBtnContainer = document.createElement("div");
+      geriBtnContainer.className = "geri-btn-container";
+      geriBtnContainer.innerHTML = `<button class="geri-btn" onclick="geriDon()">🔙 Geri</button>`;
+      kartAlani.appendChild(geriBtnContainer);
+          };
+
+          const bilmiyorumBtn = document.createElement("button");
+          bilmiyorumBtn.className = "bilmiyorum-btn";
+          bilmiyorumBtn.innerHTML = "❌ <strong>Bilmiyorum</strong>";
+          bilmiyorumBtn.onclick = () => {
+            veri[index].zorluk = (veri[index].zorluk || 0) + 1;
+            localStorage.setItem("kelimeler_" + kategori, JSON.stringify(veri));
+            gosterAnlam = false;
+            index++;
+            guncelleIstatistik();
+            kartGoster();
+          };
+
+          butonlarDiv.appendChild(bilBtn);
+          butonlarDiv.appendChild(bilmiyorumBtn);
+          kartAlani.appendChild(butonlarDiv);
+        }
+
+        setTimeout(() => kart.classList.remove("fade-out"), 50);
+      };
+
+      guncelleIstatistik();
+      kartGoster();
+    };
+
+    const toggleTheme = () => {
+      document.body.classList.toggle("dark-mode");
+    };
+
+    const geriDon = () => {
+      document.getElementById("kartAlani").style.display = "none";
+      document.getElementById("kategoriSecim").style.display = "block";
+      document.getElementById("anaMenu").style.display = "block";
+    };
+
+    window.onload = kategoriListele;
+  </script>
+</body>
+</html>
